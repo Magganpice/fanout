@@ -56,4 +56,42 @@ Fanout runs entirely in your browser. It makes no external requests of its own �
 
 When you click **Analyze**, Fanout reads the current conversation from ChatGPT's internal API using your active session — the same data your browser already has. It then parses the conversation graph to extract search metadata, citation references, and entity markers from each message node, grouping everything by the prompt that triggered it.
 
+## Why this matters — optimizing for Query Fanout
+
+When a user asks ChatGPT a question, the model rarely searches for exactly what was typed. Instead it **fans out** — autonomously generating a set of distinct search queries to gather information from multiple angles before composing its answer. A single user prompt like *"what are the best tools for technical SEO?"* might trigger five or six different queries behind the scenes, each pulling in different sources.
+
+This has a significant implication for anyone who wants their content to appear in AI-generated responses: **you are not optimizing for one query, you are optimizing for a cluster of queries you cannot directly see.**
+
+Fanout makes that cluster visible.
+
+### How to use it for optimization
+
+**1. Find the fanout for your topic**
+
+Ask ChatGPT a question your target audience would realistically ask. Once it responds, click **Analyze**. Look at the Queries section — these are the actual search strings the model generated. This is the query space your content needs to live in, not just the question the user typed.
+
+**2. Study the citation pattern**
+
+Look at Grouped Citations and Primary Citations. These are the pages the model pulled in and ranked. Ask: what do these pages have in common? How are they structured? What do they cover that your content might not?
+
+**3. Use the Domain Insights tab**
+
+Switch to the Domains tab to see which domains appear repeatedly across the conversation. A domain cited in three different queries has a structural advantage — the model has effectively decided it is a reliable source for this topic area. Appearing once is a citation. Appearing across multiple fanout queries is authority.
+
+**4. Run the same question multiple times**
+
+The fanout is not perfectly deterministic. Run the same prompt two or three times in separate conversations and analyze each with Fanout. Queries that appear consistently across runs are the ones worth targeting first — they represent the model's stable understanding of what this topic requires. Use the History tab to compare past analyses side by side.
+
+**5. Optimize for breadth, not just depth**
+
+Traditional SEO rewards depth on a single keyword. LLM citation rewards **breadth across a topic cluster**. A page that partially answers four of the model's six fanout queries will outperform a page that perfectly answers one. Use the query list to find gaps in your existing content and either expand the page or build supporting content that covers the adjacent queries.
+
+**6. Track which queries you are already winning**
+
+Export the citations as CSV and cross-reference the domains against your own. If you appear as a Primary Citation for two out of six fanout queries, you know exactly which queries you are missing — and those become your content targets.
+
+---
+
+The underlying principle is straightforward: LLMs with web search do not retrieve pages, they retrieve answers to sub-questions. Fanout shows you what those sub-questions are.
+
 ## By Sam Steiner
