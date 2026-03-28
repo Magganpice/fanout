@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fanout – ChatGPT Query Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── HEADER ─────────────────────────────────────────── -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <!-- Inline SVG logo -->
+          <svg width="28" height="28" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="128" height="128" rx="20" fill="#061820"/>
+            <rect x="34" y="30" width="11" height="68" rx="3" fill="#22d3ee"/>
+            <rect x="34" y="30" width="54" height="11" rx="3" fill="#22d3ee"/>
+            <rect x="34" y="58" width="44" height="10" rx="3" fill="#22d3ee"/>
+            <circle cx="96" cy="60" r="5" fill="#67e8f9" opacity="0.9"/>
+            <circle cx="96" cy="76" r="3.5" fill="#67e8f9" opacity="0.6"/>
+            <circle cx="96" cy="44" r="3.5" fill="#67e8f9" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Fanout</span>
+          <span class="brand-by">by Sam Steiner</span>
+        </div>
+      </div>
+      <button id="btn-analyze" class="btn-primary">Analyze</button>
+    </header>
+
+    <!-- ── CONVERSATION TITLE ─────────────────────────────── -->
+    <div id="conv-title" class="conv-title hidden"></div>
+
+    <!-- ── STATS BAR ──────────────────────────────────────── -->
+    <div id="stats-bar" class="stats-bar hidden"></div>
+
+    <!-- ── NAV TABS ───────────────────────────────────────── -->
+    <nav id="nav-tabs" class="nav-tabs hidden">
+      <button class="nav-tab active" data-tab="analysis">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analysis
+      </button>
+      <button class="nav-tab" data-tab="domains">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Domains
+      </button>
+      <button class="nav-tab" data-tab="history">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </button>
+    </nav>
+
+    <!-- ── CONTROLS (analysis tab only) ──────────────────── -->
+    <div id="controls" class="controls hidden">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search-input" type="text" class="search-input" placeholder="Filter results…">
+        <button id="btn-clear-search" class="btn-clear-search hidden">✕</button>
+      </div>
+
+      <div class="controls-row">
+        <!-- Column toggles dropdown -->
+        <div class="col-toggle-wrap">
+          <button id="btn-cols" class="btn-sm btn-cols-toggle">
+            Show / Hide
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="col-dropdown" class="col-dropdown hidden">
+            <div id="col-toggles"></div>
+          </div>
+        </div>
+
+        <div class="ctrl-actions">
+          <button id="btn-expand" class="btn-sm" title="Expand all groups">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            All
+          </button>
+          <button id="btn-collapse" class="btn-sm" title="Collapse all groups">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            All
+          </button>
+          <div class="export-menu-wrap">
+            <button id="btn-export-toggle" class="btn-sm btn-export">
+              Export
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="export-menu" class="export-menu hidden">
+              <button id="btn-export-csv" class="export-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Export CSV
+              </button>
+              <button id="btn-export-json" class="export-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Export JSON
+              </button>
+              <button id="btn-export-md" class="export-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Export Markdown
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+    <main id="content">
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="128" height="128" rx="20" fill="#0d2840"/>
+            <rect x="34" y="30" width="11" height="68" rx="3" fill="#22d3ee" opacity="0.5"/>
+            <rect x="34" y="30" width="54" height="11" rx="3" fill="#22d3ee" opacity="0.5"/>
+            <rect x="34" y="58" width="44" height="10" rx="3" fill="#22d3ee" opacity="0.5"/>
+            <circle cx="96" cy="60" r="5" fill="#67e8f9" opacity="0.4"/>
+            <circle cx="96" cy="76" r="3.5" fill="#67e8f9" opacity="0.3"/>
+            <circle cx="96" cy="44" r="3.5" fill="#67e8f9" opacity="0.3"/>
+          </svg>
+        </div>
+        <h2 class="empty-title">Analyze a ChatGPT Conversation</h2>
+        <p class="empty-body">Open any ChatGPT conversation, then click <strong>Analyze</strong> to inspect its query fanout, citations, entities, and more.</p>
+      </div>
+
+      <!-- Dynamic tab content rendered here -->
+      <div id="tab-content"></div>
+    </main>
+
+  </div><!-- #app -->
+
+  <script src="panel.js"></script>
+</body>
+</html>
