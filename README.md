@@ -24,7 +24,7 @@ A stats bar at the top summarises the model used, prompt count, total queries, c
 
 > Fanout is not yet in the Chrome Web Store. Install it manually:
 
-1. [Download the latest ZIP](../../releases) and unzip it — keep the folder somewhere permanent
+1. [Download ZIP](https://github.com/Magganpice/fanout/archive/refs/heads/main.zip) and unzip it — keep the folder somewhere permanent
 2. Open `chrome://extensions`
 3. Enable **Developer Mode** (toggle, top right)
 4. Click **Load Unpacked** → select the unzipped `fanout` folder
