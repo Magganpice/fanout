@@ -626,6 +626,23 @@ function renderGroup(g, idx) {
 function renderSection(name, items) {
   const section = el('div', 'section');
 
+  // Deduplicate queries: if the same text appears as both AI and user, merge into one
+  if (name === 'Queries') {
+    const seen = new Map();
+    const deduped = [];
+    for (const item of items) {
+      const key = item.t.trim().toLowerCase();
+      if (seen.has(key)) {
+        seen.get(key).both = true;
+      } else {
+        const copy = { ...item };
+        seen.set(key, copy);
+        deduped.push(copy);
+      }
+    }
+    items = deduped;
+  }
+
   const header = el('div', 'section-header');
 
   const copyBtn = el('button', 'btn-copy', 'Copy');
@@ -659,10 +676,17 @@ function renderItem(item) {
 
   // Plain query (no URL, no title)
   if (item.t && !item.u && !item.ti) {
-    div.classList.add(item.ai ? 'item-ai-query' : 'item-user-query');
-    div.innerHTML = `
-      <div class="item-query-label">${item.ai ? '🤖 AI-generated query' : '👤 User search query'}</div>
-      <div class="item-query-text">${esc(item.t)}</div>`;
+    if (item.both) {
+      div.classList.add('item-both-query');
+      div.innerHTML = `
+        <div class="item-query-label">🤖👤 User &amp; AI Query</div>
+        <div class="item-query-text">${esc(item.t)}</div>`;
+    } else {
+      div.classList.add(item.ai ? 'item-ai-query' : 'item-user-query');
+      div.innerHTML = `
+        <div class="item-query-label">${item.ai ? '🤖 AI-generated query' : '👤 User search query'}</div>
+        <div class="item-query-text">${esc(item.t)}</div>`;
+    }
     return div;
   }
 

@@ -671,6 +671,7 @@ a:hover { text-decoration: underline; color: var(--petrol-bright); }
 /* Query items */
 .item-ai-query { border-left: 2px solid var(--petrol-mid); }
 .item-user-query { border-left: 2px solid var(--green); }
+.item-both-query { border-left: 2px solid var(--amber); }
 
 .item-query-label {
   font-size: 10px;
@@ -682,6 +683,7 @@ a:hover { text-decoration: underline; color: var(--petrol-bright); }
 }
 .item-ai-query .item-query-label { color: var(--petrol-light); }
 .item-user-query .item-query-label { color: var(--green); }
+.item-both-query .item-query-label { color: var(--amber); }
 
 .item-query-text {
   font-size: 12px;
