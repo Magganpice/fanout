@@ -22,17 +22,30 @@ A stats bar at the top summarises the model used, prompt count, total queries, c
 
 ## Install
 
-> Fanout is not yet in the Chrome Web Store. Install it manually:
+> Fanout is not yet in the Chrome Web Store or Firefox Add-ons. Install it manually:
+
+### Chrome
 
 1. [Download ZIP](https://github.com/Magganpice/fanout/archive/refs/heads/main.zip) and unzip it — keep the folder somewhere permanent
-2. Open `chrome://extensions`
-3. Enable **Developer Mode** (toggle, top right)
-4. Click **Load Unpacked** → select the unzipped `fanout` folder
-5. Navigate to any ChatGPT conversation and click the Fanout icon in the toolbar
+2. Rename `manifest.chrome.json` to `manifest.json` (replace the existing one)
+3. Open `chrome://extensions`
+4. Enable **Developer Mode** (toggle, top right)
+5. Click **Load Unpacked** → select the unzipped folder
+6. Navigate to any ChatGPT conversation and click the Fanout icon in the toolbar — the side panel opens automatically
+
+### Firefox
+
+1. [Download ZIP](https://github.com/Magganpice/fanout/archive/refs/heads/main.zip) and unzip it
+2. Rename `manifest.firefox.json` to `manifest.json` (replace the existing one)
+3. Open `about:debugging#/runtime/this-firefox`
+4. Click **Load Temporary Add-on** → select any file inside the unzipped folder
+5. Navigate to any ChatGPT conversation and click the Fanout icon — a new tab opens with the analyzer
+
+> **Note:** Temporary add-ons in Firefox are removed when the browser closes. For a persistent install, the extension needs to be signed by Mozilla.
 
 ## Requirements
 
-- Google Chrome 116+ (for Side Panel support)
+- Google Chrome 116+ or Firefox 109+
 - An active ChatGPT account
 - A conversation that used web search — the URL must contain `/c/`
 

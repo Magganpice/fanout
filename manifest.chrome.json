@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Fanout – ChatGPT Query Analyzer",
+  "short_name": "Fanout",
+  "description": "Analyze ChatGPT query fanout, citations, domains, and conversation structure. By Sam Steiner.",
+  "version": "1.1.0",
+
+  "permissions": [
+    "sidePanel",
+    "scripting",
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_title": "Fanout – Open Query Analyzer",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "32":  "icons/icon32.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "32":  "icons/icon32.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fanout@samsteiner.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}
