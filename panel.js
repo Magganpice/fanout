@@ -43,12 +43,25 @@ for (const [name, col] of Object.entries(SECTIONS)) {
 ════════════════════════════════════════════════════════════ */
 
 const $  = id  => document.getElementById(id);
-const el = (tag, cls, html) => {
+const el = (tag, cls, txt) => {
   const e = document.createElement(tag);
   if (cls)              e.className = cls;
-  if (html !== undefined) e.innerHTML = html;
+  if (txt !== undefined) e.textContent = txt;
   return e;
 };
+
+/** Create an SVG element with optional child shapes */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function makeSVG(attrs, children = []) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  Object.entries(attrs).forEach(([k, v]) => svg.setAttribute(k, v));
+  children.forEach(([tag, ca]) => {
+    const c = document.createElementNS(SVG_NS, tag);
+    Object.entries(ca).forEach(([k, v]) => c.setAttribute(k, v));
+    svg.appendChild(c);
+  });
+  return svg;
+}
 
 /** Safe HTML escaping */
 const esc = s =>
@@ -505,9 +518,8 @@ function renderStats(stats) {
   if (stats.models.length) {
     const card = el('div', 'stat-card stat-card-model');
     card.title = stats.models.join(', ');
-    card.innerHTML = `
-      <div class="stat-value stat-value-model">${esc(stats.models.join(', '))}</div>
-      <div class="stat-label">Model</div>`;
+    card.appendChild(el('div', 'stat-value stat-value-model', stats.models.join(', ')));
+    card.appendChild(el('div', 'stat-label', 'Model'));
     bar.appendChild(card);
   }
 
@@ -520,12 +532,10 @@ function renderStats(stats) {
 
   cards.forEach(({ value, label, sub }) => {
     const card = el('div', 'stat-card');
-    card.innerHTML = `
-      <div class="stat-value">${value}</div>
-      <div class="stat-label">
-        ${esc(label)}
-        ${sub ? `<span class="stat-sub">${esc(sub)}</span>` : ''}
-      </div>`;
+    card.appendChild(el('div', 'stat-value', String(value)));
+    const labelDiv = el('div', 'stat-label', label);
+    if (sub) labelDiv.appendChild(el('span', 'stat-sub', sub));
+    card.appendChild(labelDiv);
     bar.appendChild(card);
   });
 }
@@ -573,27 +583,30 @@ function renderGroup(g, idx) {
   if (g.fn.length) pills.push(`${g.fn.length} footnote${g.fn.length === 1 ? '' : 's'}`);
   if (g.en.length) pills.push(`${g.en.length} entit${g.en.length === 1 ? 'y' : 'ies'}`);
 
-  const pillsHTML = pills.map(p =>
-    `<span class="group-meta-pill">${esc(p)}</span>`
-  ).join('');
 
-  const promptText = esc(g.p.length > 200 ? g.p.substring(0, 200) + '…' : g.p);
+  const promptText = g.p.length > 200 ? g.p.substring(0, 200) + '…' : g.p;
 
   const group = el('div', 'group');
   group.dataset.idx = idx;
 
   const header = el('div', 'group-header');
-  header.innerHTML = `
-    <div class="group-header-inner">
-      <div class="group-prompt">${promptText}</div>
-      ${pills.length ? `<div class="group-meta">${pillsHTML}</div>` : ''}
-    </div>
-    <div class="group-chevron ${expanded ? 'open' : ''}">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </div>`;
+
+  const headerInner = el('div', 'group-header-inner');
+  headerInner.appendChild(el('div', 'group-prompt', promptText));
+  if (pills.length) {
+    const metaDiv = el('div', 'group-meta');
+    pills.forEach(p => metaDiv.appendChild(el('span', 'group-meta-pill', p)));
+    headerInner.appendChild(metaDiv);
+  }
+
+  const chevron = el('div', `group-chevron${expanded ? ' open' : ''}`);
+  chevron.appendChild(makeSVG(
+    { width: '14', height: '14', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.5' },
+    [['polyline', { points: '6 9 12 15 18 9' }]]
+  ));
+
+  header.appendChild(headerInner);
+  header.appendChild(chevron);
 
   header.addEventListener('click', () => {
     if (state.expanded.has(idx)) {
@@ -656,9 +669,8 @@ function renderSection(name, items) {
     });
   });
 
-  header.innerHTML = `
-    <span class="section-title">${esc(name)}</span>
-    <span class="section-count">${items.length}</span>`;
+  header.appendChild(el('span', 'section-title', name));
+  header.appendChild(el('span', 'section-count', String(items.length)));
   header.appendChild(copyBtn);
   section.appendChild(header);
 
@@ -678,15 +690,12 @@ function renderItem(item) {
   if (item.t && !item.u && !item.ti) {
     if (item.both) {
       div.classList.add('item-both-query');
-      div.innerHTML = `
-        <div class="item-query-label">🤖👤 User &amp; AI Query</div>
-        <div class="item-query-text">${esc(item.t)}</div>`;
+      div.appendChild(el('div', 'item-query-label', '🤖👤 User & AI Query'));
     } else {
       div.classList.add(item.ai ? 'item-ai-query' : 'item-user-query');
-      div.innerHTML = `
-        <div class="item-query-label">${item.ai ? '🤖 AI-generated query' : '👤 User search query'}</div>
-        <div class="item-query-text">${esc(item.t)}</div>`;
+      div.appendChild(el('div', 'item-query-label', item.ai ? '🤖 AI-generated query' : '👤 User search query'));
     }
+    div.appendChild(el('div', 'item-query-text', item.t));
     return div;
   }
 
@@ -699,26 +708,24 @@ function renderItem(item) {
       queries = Array.isArray(parsed.query) ? parsed.query : [];
       layout  = parsed.layout || '';
     } catch {}
-    div.innerHTML = `
-      <div class="item-top">
-        <span class="badge badge-ImgGroup">Image Search</span>
-        ${layout ? `<span class="item-date">${esc(layout)}</span>` : ''}
-      </div>
-      <div class="imggroup-queries">
-        ${queries.map(q => `<span class="imggroup-query">${esc(q)}</span>`).join('')}
-      </div>`;
+    const imgTop = el('div', 'item-top');
+    imgTop.appendChild(el('span', 'badge badge-ImgGroup', 'Image Search'));
+    if (layout) imgTop.appendChild(el('span', 'item-date', layout));
+    const imgQueries = el('div', 'imggroup-queries');
+    queries.forEach(q => imgQueries.appendChild(el('span', 'imggroup-query', q)));
+    div.appendChild(imgTop);
+    div.appendChild(imgQueries);
     return div;
   }
 
   // Entity / Model (no URL)
   if (!item.u) {
     const typeClass = item.t.split(' ')[0];
-    div.innerHTML = `
-      <div class="item-top">
-        <span class="badge badge-${esc(typeClass)}">${esc(item.t)}</span>
-      </div>
-      <div class="item-title">${esc(item.ti)}</div>
-      ${item.sn ? `<div class="item-snippet">${esc(item.sn)}</div>` : ''}`;
+    const entTop = el('div', 'item-top');
+    entTop.appendChild(el('span', `badge badge-${typeClass}`, item.t));
+    div.appendChild(entTop);
+    div.appendChild(el('div', 'item-title', item.ti));
+    if (item.sn) div.appendChild(el('div', 'item-snippet', item.sn));
     return div;
   }
 
@@ -728,24 +735,28 @@ function renderItem(item) {
   try { domain = new URL(item.u).hostname.replace(/^www\./, ''); }
   catch {}
 
-  const qualityBadge = item.sq === 'none'
-    ? `<span class="quality-none">no preview</span>`
-    : item.sq === 'partial'
-    ? `<span class="quality-none">thin</span>`
-    : '';
+  const citTop = el('div', 'item-top');
+  citTop.appendChild(el('span', `badge badge-${typeClass}`, item.t));
+  if (item.r  != null) citTop.appendChild(el('span', 'item-rank', `#${item.r}`));
+  if (item.ri != null) citTop.appendChild(el('span', 'item-ref', `Ref ${item.ri}`));
+  if (item.dt)         citTop.appendChild(el('span', 'item-date', item.dt));
+  div.appendChild(citTop);
 
-  div.innerHTML = `
-    <div class="item-top">
-      <span class="badge badge-${esc(typeClass)}">${esc(item.t)}</span>
-      ${item.r  != null ? `<span class="item-rank">#${item.r}</span>` : ''}
-      ${item.ri != null ? `<span class="item-ref">Ref ${item.ri}</span>` : ''}
-      ${item.dt ? `<span class="item-date">${esc(item.dt)}</span>` : ''}
-    </div>
-    <div class="item-title">${esc(item.ti)} ${qualityBadge}</div>
-    <a class="item-url" href="${esc(item.u)}" target="_blank" rel="noopener noreferrer"
-       title="${esc(item.u)}">${esc(domain || item.u)}</a>
-    ${item.sn ? `<div class="item-snippet">${esc(item.sn)}</div>` : ''}
-    ${item.at ? `<div class="item-attr">${esc(item.at)}</div>` : ''}`;
+  const titleDiv = el('div', 'item-title', item.ti);
+  if (item.sq === 'none' || item.sq === 'partial') {
+    titleDiv.appendChild(el('span', 'quality-none', item.sq === 'none' ? 'no preview' : 'thin'));
+  }
+  div.appendChild(titleDiv);
+
+  const link = el('a', 'item-url', domain || item.u);
+  link.href   = item.u;
+  link.target = '_blank';
+  link.rel    = 'noopener noreferrer';
+  link.title  = item.u;
+  div.appendChild(link);
+
+  if (item.sn) div.appendChild(el('div', 'item-snippet', item.sn));
+  if (item.at) div.appendChild(el('div', 'item-attr',    item.at));
 
   return div;
 }
@@ -775,28 +786,37 @@ function renderDomainsTab(container) {
   };
 
   domains.slice(0, 60).forEach(({ domain, count, buckets }, i) => {
-    const pct  = Math.round((count / maxCount) * 100);
-
-    const bucketPills = Object.entries(buckets)
-      .filter(([, n]) => n > 0)
-      .map(([type, n]) =>
-        `<span class="domain-type-pill" style="background:${BUCKET_COLORS[type] || '#4a8c96'}22;
-          color:${BUCKET_COLORS[type] || '#7ecfdb'};border:1px solid ${BUCKET_COLORS[type] || '#4a8c96'}44">
-          ${esc(type)}&nbsp;${n}
-        </span>`
-      ).join('');
+    const pct = Math.round((count / maxCount) * 100);
 
     const row = el('div', 'domain-row');
-    row.innerHTML = `
-      <div class="domain-rank">${i + 1}</div>
-      <div class="domain-info">
-        <div class="domain-name">${esc(domain)}</div>
-        ${bucketPills ? `<div class="domain-breakdown">${bucketPills}</div>` : ''}
-        <div class="domain-bar-wrap" style="margin-top:4px">
-          <div class="domain-bar" style="width:${pct}%"></div>
-        </div>
-      </div>
-      <div class="domain-count">${count}</div>`;
+    row.appendChild(el('div', 'domain-rank', String(i + 1)));
+
+    const info = el('div', 'domain-info');
+    info.appendChild(el('div', 'domain-name', domain));
+
+    const bucketEntries = Object.entries(buckets).filter(([, n]) => n > 0);
+    if (bucketEntries.length) {
+      const breakdown = el('div', 'domain-breakdown');
+      bucketEntries.forEach(([type, n]) => {
+        const color = BUCKET_COLORS[type] || '#4a8c96';
+        const pill  = el('span', 'domain-type-pill', `${type}\u00a0${n}`);
+        pill.style.background = `${color}22`;
+        pill.style.color      = BUCKET_COLORS[type] || '#7ecfdb';
+        pill.style.border     = `1px solid ${color}44`;
+        breakdown.appendChild(pill);
+      });
+      info.appendChild(breakdown);
+    }
+
+    const barWrap = el('div', 'domain-bar-wrap');
+    barWrap.style.marginTop = '4px';
+    const bar = el('div', 'domain-bar');
+    bar.style.width = `${pct}%`;
+    barWrap.appendChild(bar);
+    info.appendChild(barWrap);
+
+    row.appendChild(info);
+    row.appendChild(el('div', 'domain-count', String(count)));
     list.appendChild(row);
   });
 
@@ -851,19 +871,17 @@ function renderHistoryTab(container) {
     });
 
     const row = el('div', 'history-row');
-    row.innerHTML = `
-      <div class="history-info">
-        <div class="history-title">${esc(entry.title)}</div>
-        <div class="history-meta">
-          ${esc(date)} &middot;
-          ${entry.stats?.queries || 0} queries &middot;
-          ${entry.stats?.citations || 0} citations &middot;
-          ${entry.stats?.uniqueDomains || 0} domains
-        </div>
-      </div>
-      <button class="btn-load">Load</button>`;
+    const info = el('div', 'history-info');
+    info.appendChild(el('div', 'history-title', entry.title));
+    const meta = el('div', 'history-meta',
+      `${date} · ${entry.stats?.queries || 0} queries · ${entry.stats?.citations || 0} citations · ${entry.stats?.uniqueDomains || 0} domains`
+    );
+    info.appendChild(meta);
+    row.appendChild(info);
 
-    row.querySelector('.btn-load').addEventListener('click', () => loadFromHistory(i));
+    const loadBtn = el('button', 'btn-load', 'Load');
+    loadBtn.addEventListener('click', () => loadFromHistory(i));
+    row.appendChild(loadBtn);
     list.appendChild(row);
   });
 
@@ -1072,18 +1090,19 @@ function setLoading(loading) {
 
 function showError(msg) {
   $('empty-state').classList.add('hidden');
-  $('tab-content').innerHTML = `
-    <div class="error-state">
-      <div class="error-icon">⚠</div>
-      <div class="error-msg">${esc(msg)}</div>
-    </div>`;
+  const wrap = el('div', 'error-state');
+  wrap.appendChild(el('div', 'error-icon', '⚠'));
+  wrap.appendChild(el('div', 'error-msg', msg));
+  const content = $('tab-content');
+  content.innerHTML = '';
+  content.appendChild(wrap);
 }
 
 /* ════════════════════════════════════════════════════════════
    DROPDOWN HELPERS
 ════════════════════════════════════════════════════════════ */
 
-function toggleDropdown(btnId, menuId) {
+function toggleDropdown(_btnId, menuId) {
   const menu   = $(menuId);
   const isOpen = !menu.classList.contains('hidden');
 
