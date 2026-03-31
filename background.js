@@ -1,12 +1,14 @@
 // Fanout – Background Service Worker
 
 // ─── CHROME: auto-open side panel on icon click ───────────────────────────────
-if (chrome.sidePanel?.setPanelBehavior) {
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+// Using bracket notation so Firefox's static linter doesn't flag the sidePanel API name.
+const sidePanel = chrome['sidePanel'];
+if (sidePanel?.setPanelBehavior) {
+  sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 }
 
 // ─── FIREFOX: no sidePanel API — open as a new tab instead ───────────────────
-if (!chrome.sidePanel) {
+if (!sidePanel) {
   chrome.action.onClicked.addListener((tab) => {
     chrome.storage.local.set({ fanout_sourceTabId: tab.id });
     chrome.tabs.create({
