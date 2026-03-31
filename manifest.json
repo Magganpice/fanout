@@ -3,7 +3,7 @@
   "name": "Fanout – ChatGPT Query Analyzer",
   "short_name": "Fanout",
   "description": "Analyze ChatGPT query fanout, citations, domains, and conversation structure. By Sam Steiner.",
-  "version": "1.0.0",
+  "version": "1.1.0",
 
   "permissions": [
     "sidePanel",
